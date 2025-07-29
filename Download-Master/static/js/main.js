@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- All Element Selections ---
     const urlForm = document.getElementById('urlForm');
     const urlInput = document.getElementById('urlInput');
     const fetchButton = document.getElementById('fetchButton');
@@ -13,29 +14,40 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentVideoData = null;
 
-    // --- Dark Mode Logic ---
+    // --- NEW & IMPROVED Dark Mode Logic ---
     const applyTheme = (theme) => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
-            themeIconDark.classList.remove('hidden');
             themeIconLight.classList.add('hidden');
+            themeIconDark.classList.remove('hidden');
         } else {
             document.documentElement.classList.remove('dark');
-            themeIconDark.classList.add('hidden');
             themeIconLight.classList.remove('hidden');
+            themeIconDark.classList.add('hidden');
         }
     };
 
     const toggleTheme = () => {
-        const currentTheme = localStorage.getItem('theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
         localStorage.setItem('theme', newTheme);
         applyTheme(newTheme);
     };
-    
+
     darkModeToggle.addEventListener('click', toggleTheme);
-    // Apply theme on initial load
-    applyTheme(localStorage.getItem('theme') || 'dark');
+    
+    // Initialize theme on page load
+    const initializeTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else {
+            // If no theme is saved, respect the user's system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(prefersDark ? 'dark' : 'light');
+        }
+    };
+    initializeTheme();
+
 
     // --- Form Submission Logic ---
     urlForm.addEventListener('submit', async (e) => {
@@ -59,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch video information.');
+                throw new Error(errorData.error || 'Could not fetch video information. The URL might be invalid, private, or unsupported.');
             }
 
             const data = await response.json();
@@ -99,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const formatSelector = document.getElementById('formatSelector');
         formatSelector.innerHTML = '';
         
-        // Group formats by type
         const videoFormats = data.formats.filter(f => f.type === 'video');
         const audioFormats = data.formats.filter(f => f.type === 'audio');
         
@@ -108,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             videoGroup.label = 'Video (MP4)';
             videoFormats.forEach((format, index) => {
                 const option = document.createElement('option');
-                option.value = index;
+                option.value = data.formats.indexOf(format);
                 option.textContent = `${format.label} (${format.filesize})`;
                 videoGroup.appendChild(option);
             });
@@ -118,9 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (audioFormats.length > 0) {
             const audioGroup = document.createElement('optgroup');
             audioGroup.label = 'Audio (MP3)';
-            audioFormats.forEach((format, index) => {
+            audioFormats.forEach((format) => {
                 const option = document.createElement('option');
-                // Use a unique identifier if indices overlap
                 option.value = data.formats.indexOf(format);
                 option.textContent = `${format.label} (${format.filesize})`;
                 audioGroup.appendChild(option);
@@ -142,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedFormat = currentVideoData.formats[selectedIndex];
         const downloadUrl = `/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(selectedFormat.format_id)}&filename=${encodeURIComponent(selectedFormat.filename)}&ext=${encodeURIComponent(selectedFormat.ext)}`;
         
-        // Trigger download
         window.location.href = downloadUrl;
     });
 });
