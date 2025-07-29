@@ -1,3 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Base Styles & Animations */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 10s linear infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#result, #error {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#main-card {
+    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+
+/* NEW Download Animation */
 @keyframes download-bounce {
   0%, 100% {
     transform: translateY(-25%);
@@ -11,4 +58,32 @@
 
 .animate-download {
   animation: download-bounce 1s infinite;
+}
+
+
+/* Styling for Prose (Informational Content) */
+.prose-dark {
+    color: #d1d5db; /* gray-300 */
+}
+.prose-dark h1, .prose-dark h2, .prose-dark h3, .prose-dark h4, .prose-dark strong {
+    color: #f9fafb; /* gray-50 */
+}
+.prose-dark a {
+    color: #60a5fa; /* blue-400 */
+}
+.prose-dark a:hover {
+    color: #3b82f6; /* blue-500 */
+}
+.prose-dark blockquote {
+    border-left-color: #4b5563; /* gray-600 */
+    color: #9ca3af; /* gray-400 */
+}
+.prose-dark code {
+    background-color: #374151; /* gray-700 */
+    color: #e5e7eb; /* gray-200 */
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+}
+.prose-dark ul > li::before {
+    background-color: #60a5fa; /* blue-400 */
 }
