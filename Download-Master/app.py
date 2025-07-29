@@ -19,13 +19,10 @@ def get_yt_dlp_command(url):
         '--add-header', 'Accept-Language: en-US,en;q=0.5',
         '--no-warnings', '--quiet'
     ]
-    if 'facebook.com' in url:
-        cookie_file = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-        if os.path.exists(cookie_file):
-            base_command.extend(['--cookies', cookie_file])
+    if 'facebook.com' in url and os.path.exists(os.path.join(os.path.dirname(__file__), 'cookies.txt')):
+        base_command.extend(['--cookies', 'cookies.txt'])
     base_command.append(url)
     return base_command
-
 
 # --- Helper Functions ---
 def get_sanitized_filename(title):
@@ -40,19 +37,16 @@ def convert_facebook_url(url):
             return f'https://www.facebook.com/watch/?v={video_id}'
     return url
 
-# <<< NEW FUNCTION TO CREATE USER-FRIENDLY LABELS >>>
 def get_standard_label(height):
-    """Maps a resolution height to a standard quality label."""
     if height >= 3240: return "4320p (8K)"
     if height >= 1800: return "2160p (4K)"
     if height >= 1260: return "1440p (2K)"
     if height >= 900:  return "1080p (FHD)"
-    if height >= 600:  return "720p (HD)" # Catches 854p and 682p
+    if height >= 600:  return "720p (HD)"
     if height >= 420:  return "480p (SD)"
     if height >= 300:  return "360p"
     if height >= 180:  return "240p"
     return "144p"
-
 
 def get_video_info(url):
     processed_url = convert_facebook_url(url)
@@ -78,7 +72,7 @@ def parse_formats(info):
     if best_audio:
         filesize = best_audio.get('filesize') or best_audio.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
-        formats_list.append({'label': f"Audio MP3 ({best_audio.get('abr', 0)}k)", 'format_id': best_audio['format_id'], 'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb})
+        formats_list.append({'label': f"Audio MP3", 'format_id': best_audio['format_id'], 'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb})
 
     video_formats = [f for f in info.get('formats', []) if f.get('vcodec') != 'none']
     processed_resolutions = set()
@@ -87,21 +81,37 @@ def parse_formats(info):
         if not height or height in processed_resolutions: continue
         processed_resolutions.add(height)
         
-        # <<< THIS IS THE MODIFIED PART >>>
         standard_label = get_standard_label(height)
-        # Create a user-friendly label, e.g., "720p (HD) (from 854p)"
-        # This makes sure every option is unique, even if they map to the same quality
         final_label = f"{standard_label}"
-        if str(height) not in standard_label:
-            final_label += f" ({height}p)"
         
         format_id = f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
         filesize = f.get('filesize') or f.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
         
         formats_list.append({'label': final_label, 'format_id': format_id, 'type': 'video', 'ext': 'mp4', 'filename': f"{sanitized_title}_{height}p.mp4", 'filesize': filesize_mb})
+    
+    # <<< THIS IS THE BUG FIX: A safe way to sort video and audio formats >>>
+    def sort_key(item):
+        if item['type'] == 'audio':
+            return (1, 0)  # Put audio formats at the end
         
-    return sorted(formats_list, key=lambda x: (x['type'], -int(re.search(r'(\d+)p', x['label']).group(1)) if re.search(r'(\d+)p', x['label']) else 0))
+        # Extract the resolution number (e.g., 720 from "720p (HD)")
+        match = re.search(r'(\d+)p', item['label'])
+        if match:
+            # Sort by resolution number, highest first
+            return (0, -int(match.group(1)))
+        
+        return (0, 0) # Fallback for any other case
+
+    # Filter out duplicate labels before sorting
+    unique_formats = []
+    seen_labels = set()
+    for f in formats_list:
+        if f['label'] not in seen_labels:
+            unique_formats.append(f)
+            seen_labels.add(f['label'])
+
+    return sorted(unique_formats, key=sort_key)
 
 
 # --- API & Core Routes (No changes needed) ---
