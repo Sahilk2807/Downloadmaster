@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        showSkeleton(); // This function was missing before
+        showSkeleton();
         fetchButton.disabled = true;
-        fetchButton.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Fetching...</span>`;
+        fetchButton.innerHTML = `<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Fetching...</span>`;
 
         try {
             const response = await fetch('/api/fetch_info', {
@@ -72,15 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
             currentVideoData = data;
             displayResult(data);
         } catch (error) {
-            showError(error.message); // This function was also missing
+            showError(error.message);
         } finally {
             fetchButton.disabled = false;
             fetchButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><span>Fetch</span>`;
         }
     });
 
-    // --- <<< THE MISSING FUNCTIONS ARE NOW HERE >>> ---
-    // --- UI Update Functions ---
+    // --- UI Update Functions (Restored) ---
     const showSkeleton = () => {
         resultDiv.classList.add('hidden');
         errorDiv.classList.add('hidden');
@@ -103,36 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const formatSelector = document.getElementById('formatSelector');
         formatSelector.innerHTML = '';
         
-        const videoFormats = data.formats.filter(f => f.type === 'video');
-        const audioFormats = data.formats.filter(f => f.type === 'audio');
-        
-        if (videoFormats.length > 0) {
-            const videoGroup = document.createElement('optgroup');
-            videoGroup.label = 'Video (MP4)';
-            videoFormats.forEach((format) => {
-                const option = document.createElement('option');
-                option.value = data.formats.indexOf(format);
-                option.textContent = `${format.label} (~${format.filesize})`;
-                videoGroup.appendChild(option);
-            });
-            formatSelector.appendChild(videoGroup);
-        }
-        
-        if (audioFormats.length > 0) {
-            const audioGroup = document.createElement('optgroup');
-            audioGroup.label = 'Audio';
-            audioFormats.forEach((format) => {
-                const option = document.createElement('option');
-                option.value = data.formats.indexOf(format);
-                option.textContent = `${format.label} (~${format.filesize})`;
-                audioGroup.appendChild(option);
-            });
-            formatSelector.appendChild(audioGroup);
-        }
+        data.formats.forEach((format, index) => {
+            const option = document.createElement('option');
+            option.value = index; // Use index as value
+            option.textContent = `${format.label} (~${format.filesize})`;
+            formatSelector.appendChild(option);
+        });
+
         resultDiv.classList.remove('hidden');
     };
 
-    // --- Download Logic with Animation ---
+    // --- Download Logic with NEW Animation ---
     downloadButton.addEventListener('click', () => {
         const selectedIndex = document.getElementById('formatSelector').value;
         if (selectedIndex === null || !currentVideoData) {
@@ -143,9 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedFormat = currentVideoData.formats[selectedIndex];
         const downloadUrl = `/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(selectedFormat.format_id)}&filename=${encodeURIComponent(selectedFormat.filename)}&ext=${encodeURIComponent(selectedFormat.ext)}`;
 
-        // 1. Disable the button and show a spinner
+        // 1. Disable the button and show the new animation
         downloadButton.disabled = true;
-        downloadButton.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Processing...</span>`;
+        downloadButton.innerHTML = `
+            <div role="status" class="flex items-center space-x-2">
+                <svg class="w-6 h-6 text-current animate-download" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4V16M12 16L8 12M12 16L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+                <span>Preparing...</span>
+            </div>`;
 
         // 2. Trigger the download
         window.location.href = downloadUrl;
