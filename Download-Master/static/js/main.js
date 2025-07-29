@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultDiv.classList.remove('hidden');
     };
 
-    // --- GSAP Animation Logic ---
+    // --- GSAP Animation Logic for Download Button ---
     function getPoint(point, i, a, smoothing) {
         let cp = (current, previous, next, reverse) => {
             let p = previous || current, n = next || current,
@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const button = downloadButton;
     const buttonText = button.querySelector('.gsap-button__text');
+    const buttonIcon = button.querySelector('.gsap-button__icon');
     let duration = 3000,
         svg = button.querySelector('svg'),
         svgPath = new Proxy({ y: null, smoothing: null }, {
@@ -146,15 +147,16 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             get(target, key) { return target[key]; }
         });
-
+    
     const resetDownloadButton = () => {
         button.classList.remove('loading', 'success');
         button.disabled = false;
         buttonText.textContent = "Download Now";
+        buttonIcon.style.display = 'inline-flex'; // Show the icon
         svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
     };
 
-    // Initialize the button state on page load
+    // Initialize the button state
     resetDownloadButton();
 
     button.addEventListener('click', e => {
@@ -181,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.remove('loading');
             button.classList.add('success');
             buttonText.textContent = "Success!";
-            svg.innerHTML = getPath(0, 0, [[3, 14], [8, 19], [21, 6]]);
+            buttonIcon.style.display = 'none'; // Hide the icon on success
         }, duration / 2);
     });
 });
