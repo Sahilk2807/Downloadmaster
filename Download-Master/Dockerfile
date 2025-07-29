@@ -1,31 +1,38 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
-# Set the working directory in the container
+# Set environment variables for Python and the Port
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PORT=10000
+
+# Set the working directory
 WORKDIR /app
 
-# Install system dependencies, including ffmpeg
-# -y flag automatically answers yes to prompts
-# --no-install-recommends reduces the image size
+# Install system dependencies, including ffmpeg, without installing extra packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container at /app
-COPY requirements.txt .
+# Create a non-root user to run the application for security
+RUN addgroup --system app && adduser --system --group app
 
-# Install any needed packages specified in requirements.txt
-# --no-cache-dir ensures that pip does not store the downloaded packages, reducing image size
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code into the container at /app
+# Copy the rest of the application files
 COPY . .
 
-# Make port 80 available to the world outside this container
-# Render will automatically map this to its public-facing ports
-EXPOSE 80
+# Change ownership of the files to the non-root user
+RUN chown -R app:app /app
 
-# Define the command to run the app using gunicorn
-# This is a production-grade WSGI server
-# 0.0.0.0 makes the server accessible from outside the container
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+# Switch to the non-root user
+USER app
+
+# Expose the port the app runs on
+EXPOSE $PORT
+
+# Run the app using gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "app:app"]
