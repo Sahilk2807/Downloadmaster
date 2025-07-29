@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showSkeleton();
         fetchButton.disabled = true;
+        const originalFetchText = fetchButton.innerHTML;
         fetchButton.innerHTML = `<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Fetching...</span>`;
 
         try {
@@ -75,11 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(error.message);
         } finally {
             fetchButton.disabled = false;
-            fetchButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><span>Fetch</span>`;
+            fetchButton.innerHTML = originalFetchText;
         }
     });
 
-    // --- UI Update Functions (Restored) ---
+    // --- UI Update Functions ---
     const showSkeleton = () => {
         resultDiv.classList.add('hidden');
         errorDiv.classList.add('hidden');
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         data.formats.forEach((format, index) => {
             const option = document.createElement('option');
-            option.value = index; // Use index as value
+            option.value = index;
             option.textContent = `${format.label} (~${format.filesize})`;
             formatSelector.appendChild(option);
         });
@@ -112,32 +113,76 @@ document.addEventListener('DOMContentLoaded', () => {
         resultDiv.classList.remove('hidden');
     };
 
-    // --- Download Logic with NEW Animation ---
-    downloadButton.addEventListener('click', () => {
+    // --- GSAP Animation Logic for Download Button ---
+    function getPoint(point, i, a, smoothing) {
+        let cp = (current, previous, next, reverse) => {
+            let p = previous || current, n = next || current,
+                o = { length: Math.sqrt(Math.pow(n[0] - p[0], 2) + Math.pow(n[1] - p[1], 2)), angle: Math.atan2(n[1] - p[1], n[0] - p[0]) },
+                angle = o.angle + (reverse ? Math.PI : 0),
+                length = o.length * smoothing;
+            return [current[0] + Math.cos(angle) * length, current[1] + Math.sin(angle) * length];
+        };
+        let cps = cp(a[i - 1], a[i - 2], point, false);
+        let cpe = cp(point, a[i - 1], a[i + 1], true);
+        return `C ${cps[0]},${cps[1]} ${cpe[0]},${cpe[1]} ${point[0]},${point[1]}`;
+    }
+
+    function getPath(update, smoothing, pointsNew) {
+        let points = pointsNew ? pointsNew : [[4, 12], [12, update], [20, 12]];
+        let d = points.reduce((acc, point, i, a) => i === 0 ? `M ${point[0]},${point[1]}` : `${acc} ${getPoint(point, i, a, smoothing)}`, '');
+        return `<path d="${d}" />`;
+    }
+
+    const button = downloadButton;
+    let duration = 3000,
+        svg = button.querySelector('svg'),
+        svgPath = new Proxy({ y: null, smoothing: null }, {
+            set(target, key, value) {
+                target[key] = value;
+                if(target.y !== null && target.smoothing !== null) {
+                    svg.innerHTML = getPath(target.y, target.smoothing, null);
+                }
+                return true;
+            },
+            get(target, key) { return target[key]; }
+        });
+    
+    // Initialize the button's SVG icon
+    svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
+
+    button.addEventListener('click', e => {
+        e.preventDefault();
+
+        if(button.classList.contains('loading')) return;
+
         const selectedIndex = document.getElementById('formatSelector').value;
         if (selectedIndex === null || !currentVideoData) {
             showError("Please select a format to download.");
             return;
         }
-        
         const selectedFormat = currentVideoData.formats[selectedIndex];
         const downloadUrl = `/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(selectedFormat.format_id)}&filename=${encodeURIComponent(selectedFormat.filename)}&ext=${encodeURIComponent(selectedFormat.ext)}`;
 
-        // 1. Disable the button and show the new animation
-        downloadButton.disabled = true;
-        downloadButton.innerHTML = `
-            <div role="status" class="flex items-center space-x-2">
-                <svg class="w-6 h-6 text-current animate-download" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4V16M12 16L8 12M12 16L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-                <span>Preparing...</span>
-            </div>`;
+        button.classList.add('loading');
+        
+        gsap.to(svgPath, { smoothing: .3, duration: duration * .065 / 1000 });
+        gsap.to(svgPath, { y: 12, duration: duration * .265 / 1000, delay: duration * .065 / 1000, ease: Elastic.easeOut.config(1.12, .4) });
 
-        // 2. Trigger the download
-        window.location.href = downloadUrl;
+        setTimeout(() => { window.location.href = downloadUrl; }, 500);
 
-        // 3. Set a timeout to re-enable the button
+        setTimeout(() => { svg.innerHTML = getPath(0, 0, [[3, 14], [8, 19], [21, 6]]); }, duration / 2);
+
         setTimeout(() => {
-            downloadButton.disabled = false;
-            downloadButton.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Download Now</span>`;
-        }, 15000); // Re-enable after 15 seconds
+            button.classList.remove('loading');
+            gsap.to(svgPath, {
+                y: 12,
+                smoothing: 0,
+                duration: .3,
+                onComplete: () => {
+                    // Restore original icon path after reset animation
+                    svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
+                }
+            });
+        }, duration);
     });
 });
