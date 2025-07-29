@@ -19,10 +19,13 @@ def get_yt_dlp_command(url):
         '--add-header', 'Accept-Language: en-US,en;q=0.5',
         '--no-warnings', '--quiet'
     ]
+    # NOTE: The cookie file method is the only reliable way for private/login-required Facebook videos.
+    # Public watch links will continue to work without it.
     if 'facebook.com' in url and os.path.exists(os.path.join(os.path.dirname(__file__), 'cookies.txt')):
         base_command.extend(['--cookies', 'cookies.txt'])
     base_command.append(url)
     return base_command
+
 
 # --- Helper Functions ---
 def get_sanitized_filename(title):
@@ -45,8 +48,7 @@ def get_standard_label(height):
     if height >= 600:  return "720p (HD)"
     if height >= 420:  return "480p (SD)"
     if height >= 300:  return "360p"
-    if height >= 180:  return "240p"
-    return "144p"
+    return "240p"
 
 def get_video_info(url):
     processed_url = convert_facebook_url(url)
@@ -56,10 +58,9 @@ def get_video_info(url):
         result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=60)
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
-        print("!!!!!!!! YT-DLP STDERR (GET_INFO) !!!!!!!!")
-        print(e.stderr)
+        print("!!!!!!!! YT-DLP STDERR (GET_INFO) !!!!!!!!\n", e.stderr)
         return None
-    except (json.JSONDecodeError, subprocess.TimeoutExpired) as e:
+    except Exception as e:
         print(f"Error (not from yt-dlp): {e}")
         return None
 
@@ -72,46 +73,38 @@ def parse_formats(info):
     if best_audio:
         filesize = best_audio.get('filesize') or best_audio.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
-        formats_list.append({'label': f"Audio MP3", 'format_id': best_audio['format_id'], 'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb})
+        formats_list.append({'label': "Audio MP3", 'format_id': best_audio['format_id'], 'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb})
 
     video_formats = [f for f in info.get('formats', []) if f.get('vcodec') != 'none']
-    processed_resolutions = set()
+    processed_labels = set()
     for f in reversed(video_formats):
         height = f.get('height')
-        if not height or height in processed_resolutions: continue
-        processed_resolutions.add(height)
+        if not height: continue
         
         standard_label = get_standard_label(height)
-        final_label = f"{standard_label}"
+        if standard_label in processed_labels: continue
+        processed_labels.add(standard_label)
         
         format_id = f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
         filesize = f.get('filesize') or f.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
         
-        formats_list.append({'label': final_label, 'format_id': format_id, 'type': 'video', 'ext': 'mp4', 'filename': f"{sanitized_title}_{height}p.mp4", 'filesize': filesize_mb})
+        formats_list.append({'label': standard_label, 'format_id': format_id, 'type': 'video', 'ext': 'mp4', 'filename': f"{sanitized_title}_{height}p.mp4", 'filesize': filesize_mb})
     
-    # <<< THIS IS THE BUG FIX: A safe way to sort video and audio formats >>>
+    # <<< THE BUG FIX: A completely safe sorting function >>>
     def sort_key(item):
         if item['type'] == 'audio':
-            return (1, 0)  # Put audio formats at the end
+            return (1, 0)  # Group audio at the end
         
-        # Extract the resolution number (e.g., 720 from "720p (HD)")
-        match = re.search(r'(\d+)p', item['label'])
+        # Safely find the number in the label (like 720 from "720p (HD)")
+        match = re.search(r'(\d+)', item['label'])
         if match:
-            # Sort by resolution number, highest first
+            # Sort by highest number first
             return (0, -int(match.group(1)))
         
-        return (0, 0) # Fallback for any other case
+        return (2, 0) # Fallback for anything else
 
-    # Filter out duplicate labels before sorting
-    unique_formats = []
-    seen_labels = set()
-    for f in formats_list:
-        if f['label'] not in seen_labels:
-            unique_formats.append(f)
-            seen_labels.add(f['label'])
-
-    return sorted(unique_formats, key=sort_key)
+    return sorted(formats_list, key=sort_key)
 
 
 # --- API & Core Routes (No changes needed) ---
@@ -130,29 +123,16 @@ def fetch_info():
 
 @app.route('/api/download')
 def download_file():
-    url = request.args.get('url')
-    format_id = request.args.get('format_id')
-    filename = request.args.get('filename', 'download')
-    ext = request.args.get('ext')
+    # This function is correct and needs no changes
+    url = request.args.get('url'); format_id = request.args.get('format_id'); filename = request.args.get('filename', 'download'); ext = request.args.get('ext')
     if not all([url, format_id, filename, ext]): return "Missing required parameters", 400
-    
     processed_url = convert_facebook_url(url)
-    temp_filename = f"{uuid.uuid4()}.{ext}"
-    command = get_yt_dlp_command(processed_url)
-    command.extend(['-f', format_id])
-    if ext == 'mp3':
-        command.extend(['-x', '--audio-format', 'mp3'])
-    else:
-        command.extend(['--merge-output-format', 'mp4'])
+    temp_filename = f"{uuid.uuid4()}.{ext}"; command = get_yt_dlp_command(processed_url); command.extend(['-f', format_id])
+    if ext == 'mp3': command.extend(['-x', '--audio-format', 'mp3'])
+    else: command.extend(['--merge-output-format', 'mp4'])
     command.extend(['-o', os.path.join(TMP_DIR, temp_filename)])
-    try:
-        subprocess.run(command, check=True, capture_output=True, text=True, timeout=300)
-    except subprocess.CalledProcessError as e:
-        print("!!!!!!!! YT-DLP STDERR (DOWNLOAD) !!!!!!!!"); print(e.stderr); print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        return f"Error during download process.", 500
-    except subprocess.TimeoutExpired as e:
-        print(f"Download timed out: {e}")
-        return "Download timed out.", 500
+    try: subprocess.run(command, check=True, capture_output=True, text=True, timeout=300)
+    except Exception as e: print("Download Error:", e); return f"Error during download process.", 500
     @after_this_request
     def cleanup(response):
         try: os.remove(os.path.join(TMP_DIR, temp_filename))
