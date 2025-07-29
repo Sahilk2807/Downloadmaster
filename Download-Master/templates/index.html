@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- Removed hardcoded "dark" class -->
+<html lang="en"> 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,27 +7,7 @@
     <!-- SEO Meta Tags -->
     <title>Download Master - Free Video & Audio Downloader for All Platforms</title>
     <meta name="description" content="Download Master is a free, fast, and easy-to-use web app to download videos and audio from YouTube (up to 8K), TikTok (no watermark), Instagram, Facebook, Twitter, and more. Convert to MP4 or MP3 instantly.">
-    <meta name="keywords" content="video downloader, youtube downloader, tiktok downloader, instagram downloader, facebook video downloader, mp3 converter, 8k downloader, free video download">
-    <link rel="canonical" href="https://YOUR_DOMAIN.com/"> <!--! IMPORTANT: Change to your actual domain -->
     <link rel="icon" href="{{ url_for('static', filename='assets/logo.svg') }}" type="image/svg+xml">
-
-    <!-- Google Search Console Verification -->
-    <!--! PASTE GOOGLE SEARCH CONSOLE VERIFICATION META TAG HERE -->
-    <!-- e.g., <meta name="google-site-verification" content="YourVerificationString" /> -->
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://YOUR_DOMAIN.com/"> <!--! IMPORTANT: Change to your actual domain -->
-    <meta property="og:title" content="Download Master - Free Video & Audio Downloader">
-    <meta property="og:description" content="Download videos and audio from all major platforms in any quality (up to 8K). Fast, free, and no watermarks.">
-    <meta property="og:image" content="{{ url_for('static', filename='assets/og-image.png') }}">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://YOUR_DOMAIN.com/"> <!--! IMPORTANT: Change to your actual domain -->
-    <meta property="twitter:title" content="Download Master - Free Video & Audio Downloader">
-    <meta property="twitter:description" content="Download videos and audio from all major platforms in any quality (up to 8K). Fast, free, and no watermarks.">
-    <meta property="twitter:image" content="{{ url_for('static', filename='assets/og-image.png') }}">
 
     <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -58,8 +38,6 @@
                 
                 <h2 class="text-xl md:text-2xl font-semibold mb-2">The Ultimate All-in-One Downloader</h2>
                 <p class="text-gray-500 dark:text-gray-400 mb-4">Paste any video link from major platforms.</p>
-
-                <!-- NEW: Supported Platforms -->
                 <div class="flex flex-wrap justify-center gap-2 mb-6">
                     <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">YouTube</span>
                     <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">TikTok</span>
@@ -74,9 +52,10 @@
                 <form id="urlForm" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
                     <div class="relative w-full">
                         <svg class="w-6 h-6 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                        <input type="text" id="urlInput" placeholder="Paste video URL here..." class="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 focus:ring-0 rounded-lg transition duration-300" autocomplete="off">
+                        <input type="text" id="urlInput" placeholder="Paste video URL here..." class="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-gray-600 dark:focus:border-gray-400 focus:ring-0 rounded-lg transition duration-300" autocomplete="off">
                     </div>
-                    <button type="submit" id="fetchButton" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2">
+                    <!-- <<< BUTTON COLOR CHANGE >>> -->
+                    <button type="submit" id="fetchButton" class="w-full md:w-auto bg-gray-900 hover:bg-gray-700 dark:bg-gray-200 dark:hover:bg-gray-400 text-white dark:text-gray-900 font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <span>Fetch</span>
                     </button>
@@ -85,13 +64,7 @@
                 <!-- Adsterra Banner Ad -->
                 <div class="my-4 text-center">
                     <script type="text/javascript">
-                        atOptions = {
-                            'key' : '28c6144a65ec365dcd723679909923e1',
-                            'format' : 'iframe',
-                            'height' : 90,
-                            'width' : 728,
-                            'params' : {}
-                        };
+                        atOptions = {'key' : '28c6144a65ec365dcd723679909923e1', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {}};
                     </script>
                     <script type="text/javascript" src="//grubpaths.com/28c6144a65ec365dcd723679909923e1/invoke.js"></script>
                 </div>
@@ -118,8 +91,9 @@
                             <div class="w-full md:w-2/3 text-left">
                                 <h3 id="title" class="text-lg font-bold leading-tight"></h3>
                                 <p id="meta" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
-                                <select id="formatSelector" class="w-full mt-4 p-3 bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 transition"></select>
-                                <button id="downloadButton" class="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all transform hover:scale-105">
+                                <select id="formatSelector" class="w-full mt-4 p-3 bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-gray-500 transition"></select>
+                                <!-- <<< BUTTON COLOR CHANGE >>> -->
+                                <button id="downloadButton" class="w-full mt-4 bg-gray-900 hover:bg-gray-700 dark:bg-gray-200 dark:hover:bg-gray-400 text-white dark:text-gray-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all transform hover:scale-105">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                     <span>Download Now</span>
                                 </button>
@@ -133,69 +107,20 @@
                         <p id="errorMessage"></p>
                     </div>
                 </div>
-
             </div>
 
-             <!-- Informational Content Section -->
+             <!-- Informational Content Section (RESTORED) -->
              <section id="app-info" class="w-full max-w-4xl mx-auto mt-16 text-left p-6 bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
                 <div class="prose prose-lg dark:prose-dark max-w-none">
-                    
-                    <h2 class="text-3xl font-bold border-b-2 border-blue-500 pb-2 mb-6">About Download Master</h2>
-                    <p>In a digital age saturated with captivating online content, Download Master emerges as your essential companion. We are a powerful, user-centric web application designed to bridge the gap between streaming and offline access. Our mission is to provide a seamless, reliable, and high-quality solution for downloading video and audio content from the world's most popular platforms. Whether you're a content creator needing clips for a project, a student archiving educational material, or simply someone who wants to enjoy their favorite videos without depending on an internet connection, Download Master empowers you with the freedom to save and enjoy media on your own terms.</p>
-                    <p>Built with cutting-edge technology, our platform leverages the robust capabilities of <strong>yt-dlp</strong>, a world-renowned download engine, ensuring compatibility with a vast and ever-growing list of websites. From YouTube's stunning 8K resolutions to TikTok's viral clips without the watermark, we handle it all. Our service is designed to be intuitive and accessible to everyone, regardless of technical skill. With a clean, mobile-first interface, you can initiate downloads in just a few clicks from any device—be it your smartphone, tablet, or desktop computer.</p>
-                    
-                    <h2 class="text-3xl font-bold border-b-2 border-blue-500 pb-2 mb-6 mt-10">Key Features & Supported Platforms</h2>
-                    <p>Download Master is more than just a downloader; it's a comprehensive media toolkit. We support an extensive array of platforms and offer features that put you in control:</p>
-                    <ul>
-                        <li><strong>YouTube:</strong> Save videos in any available quality, from data-saving 144p to breathtaking 8K Ultra HD. We intelligently merge the best video and audio streams for the highest fidelity.</li>
-                        <li><strong>TikTok:</strong> Download your favorite TikToks completely watermark-free, perfect for sharing or repurposing.</li>
-                        <li><strong>Instagram:</strong> Easily save Reels, IGTV videos, and posts directly to your device.</li>
-                        <li><strong>Facebook & Twitter (X):</strong> Archive public videos, news clips, or memorable moments from your social feeds.</li>
-                        <li><strong>Vimeo & Dailymotion:</strong> Access and download high-quality content from professional and creative platforms.</li>
-                        <li><strong>SoundCloud:</strong> Extract and convert tracks to MP3, creating your personal offline music library.</li>
-                        <li><strong>And many more:</strong> Our support extends to Reddit, Likee, and hundreds of other websites.</li>
-                    </ul>
-
-                    <h2 class="text-3xl font-bold border-b-2 border-blue-500 pb-2 mb-6 mt-10">Frequently Asked Questions (FAQ)</h2>
-
+                    <h2 class="text-3xl font-bold border-b-2 border-gray-500 pb-2 mb-6">About Download Master</h2>
+                    <p>In a digital age saturated with captivating online content, Download Master emerges as your essential companion. We are a powerful, user-centric web application designed to bridge the gap between streaming and offline access. Our mission is to provide a seamless, reliable, and high-quality solution for downloading video and audio content from the world's most popular platforms.</p>
+                    <h2 class="text-3xl font-bold border-b-2 border-gray-500 pb-2 mb-6 mt-10">Frequently Asked Questions (FAQ)</h2>
                     <h3>Is Download Master free to use?</h3>
-                    <p>Absolutely. Our core service is completely free. We believe that everyone should have the ability to access and save online content for personal use without a paywall. The service is supported by unobtrusive advertisements, which allows us to maintain the infrastructure and continue developing new features.</p>
-                    
+                    <p>Absolutely. Our core service is completely free. We believe that everyone should have the ability to access and save online content for personal use without a paywall.</p>
                     <h3>Is it legal to download videos?</h3>
-                    <p>The legality of downloading videos depends on the content itself and the terms of service of the source platform. Generally, it is legal to download content for personal, non-commercial use (e.g., watching offline), or content that is in the public domain or under a Creative Commons license. However, downloading and redistributing copyrighted material without permission from the owner is illegal in most countries. We encourage all users to respect copyright laws and the intellectual property of creators.</p>
-
+                    <p>The legality of downloading videos depends on the content itself. Generally, it is legal to download content for personal, non-commercial use. However, downloading and redistributing copyrighted material without permission is illegal. We encourage all users to respect copyright laws.</p>
                     <h3>Do I need to install any software?</h3>
-                    <p>No. Download Master is a fully web-based application. There is no need to install any browser extensions or desktop software. Everything works directly within your web browser on any operating system (Windows, macOS, Linux, Android, iOS).</p>
-                    
-                    <h3>How do I download a video?</h3>
-                    <p>It's a simple three-step process:</p>
-                    <ol>
-                        <li><strong>Copy the URL:</strong> Go to the platform (e.g., YouTube, TikTok) and copy the URL of the video you want to download.</li>
-                        <li><strong>Paste the URL:</strong> Paste the link into the input field on the Download Master homepage and click "Fetch".</li>
-                        <li><strong>Choose and Download:</strong> Our system will analyze the link and display a thumbnail, title, and available download options. Select your desired quality and format (MP4 video or MP3 audio) and click the "Download Now" button.</li>
-                    </ol>
-
-                    <h3>Why are some high-quality YouTube videos downloaded without sound?</h3>
-                    <p>Modern platforms like YouTube often serve high-resolution video (1080p and above) and high-quality audio as separate streams to optimize playback. Download Master automatically detects this and uses a process called "merging" or "muxing" on our servers to combine the best video stream with the best audio stream into a single, complete MP4 file for you. You don't need to do anything extra; our backend handles it seamlessly.</p>
-                    
-                    <h2 class="text-3xl font-bold border-b-2 border-blue-500 pb-2 mb-6 mt-10">Pros and Cons of Using an Online Downloader</h2>
-
-                    <h3>Pros:</h3>
-                    <ul>
-                        <li><strong>Convenience:</strong> No installation required. Access the tool from any device with a web browser.</li>
-                        <li><strong>Universal Compatibility:</strong> Works across all operating systems without compatibility issues.</li>
-                        <li><strong>Cost-Effective:</strong> Our service is free, saving you from purchasing expensive software.</li>
-                        <li><strong>Wide Platform Support:</strong> A single tool can handle downloads from dozens of different websites.</li>
-                        <li><strong>Offline Access:</strong> Enjoy content without an internet connection, perfect for travel, commuting, or areas with poor connectivity.</li>
-                    </ul>
-
-                    <h3>Cons:</h3>
-                    <ul>
-                        <li><strong>Dependency on an Internet Connection:</strong> You need to be online to fetch the video information and initiate the download.</li>
-                        <li><strong>Server Load:</strong> During peak times, download processing might be slightly slower due to high user traffic. We work continuously to scale our infrastructure to minimize this.</li>
-                        <li><strong>Ad-Supported:</strong> To keep the service free, we display ads. While we strive to make them as non-intrusive as possible, they are a necessary part of the user experience.</li>
-                    </ul>
-                    <p>We are committed to transparency and continuous improvement. We hope you find Download Master to be an invaluable tool in your digital life. Happy downloading!</p>
+                    <p>No. Download Master is a fully web-based application. There is no need to install any software or extensions.</p>
                 </div>
             </section>
         </main>
@@ -205,7 +130,6 @@
             <p>© 2024 Download Master. All rights reserved.</p>
             <p class="mt-1">Please respect copyright. Only download videos you have permission to use.</p>
         </footer>
-
     </div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
