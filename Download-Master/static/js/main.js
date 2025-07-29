@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        resetDownloadButton();
         showSkeleton();
         fetchButton.disabled = true;
         const originalFetchText = fetchButton.innerHTML;
@@ -113,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultDiv.classList.remove('hidden');
     };
 
-    // --- GSAP Animation Logic for Download Button ---
+    // --- GSAP Animation Logic ---
     function getPoint(point, i, a, smoothing) {
         let cp = (current, previous, next, reverse) => {
             let p = previous || current, n = next || current,
@@ -134,26 +135,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const button = downloadButton;
+    const buttonText = button.querySelector('.gsap-button__text');
     let duration = 3000,
         svg = button.querySelector('svg'),
         svgPath = new Proxy({ y: null, smoothing: null }, {
             set(target, key, value) {
                 target[key] = value;
-                if(target.y !== null && target.smoothing !== null) {
-                    svg.innerHTML = getPath(target.y, target.smoothing, null);
-                }
+                if(target.y !== null && target.smoothing !== null) { svg.innerHTML = getPath(target.y, target.smoothing, null); }
                 return true;
             },
             get(target, key) { return target[key]; }
         });
-    
-    // Initialize the button's SVG icon
-    svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
+
+    const resetDownloadButton = () => {
+        button.classList.remove('loading', 'success');
+        button.disabled = false;
+        buttonText.textContent = "Download Now";
+        svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
+    };
+
+    // Initialize the button state on page load
+    resetDownloadButton();
 
     button.addEventListener('click', e => {
         e.preventDefault();
 
-        if(button.classList.contains('loading')) return;
+        if(button.classList.contains('loading') || button.classList.contains('success')) return;
 
         const selectedIndex = document.getElementById('formatSelector').value;
         if (selectedIndex === null || !currentVideoData) {
@@ -168,21 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
         gsap.to(svgPath, { smoothing: .3, duration: duration * .065 / 1000 });
         gsap.to(svgPath, { y: 12, duration: duration * .265 / 1000, delay: duration * .065 / 1000, ease: Elastic.easeOut.config(1.12, .4) });
 
-        setTimeout(() => { window.location.href = downloadUrl; }, 500);
-
-        setTimeout(() => { svg.innerHTML = getPath(0, 0, [[3, 14], [8, 19], [21, 6]]); }, duration / 2);
+        window.location.href = downloadUrl;
 
         setTimeout(() => {
             button.classList.remove('loading');
-            gsap.to(svgPath, {
-                y: 12,
-                smoothing: 0,
-                duration: .3,
-                onComplete: () => {
-                    // Restore original icon path after reset animation
-                    svg.innerHTML = `<path d="M5,20h14a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Zm7-3a1,1,0,0,0,.71-.29l5-5a1,1,0,0,0-1.42-1.42L13,13.59V4a1,1,0,0,0-2,0V13.59L7.71,10.29a1,1,0,1,0-1.42,1.42l5,5A1,1,0,0,0,12,17Z"/>`;
-                }
-            });
-        }, duration);
+            button.classList.add('success');
+            buttonText.textContent = "Success!";
+            svg.innerHTML = getPath(0, 0, [[3, 14], [8, 19], [21, 6]]);
+        }, duration / 2);
     });
 });
