@@ -1,7 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
-# Set environment variables for Python and the Port
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PORT=10000
@@ -9,18 +9,22 @@ ENV PORT=10000
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies, including ffmpeg, without installing extra packages
+# Install system dependencies, including ffmpeg
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user to run the application for security
+# Create a non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+
+# --- THE ULTIMATE FIX ---
+# Force an upgrade of yt-dlp to the absolute latest version
+RUN python3 -m pip install --no-cache-dir -U yt-dlp
 
 # Copy the rest of the application files
 COPY . .
@@ -34,5 +38,5 @@ USER app
 # Expose the port the app runs on
 EXPOSE $PORT
 
-# Run the app using gunicorn (This is the corrected line)
+# Run the app using gunicorn
 CMD gunicorn --bind 0.0.0.0:$PORT app:app
