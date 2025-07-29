@@ -43,47 +43,86 @@ body {
     transform: scale(0.95);
 }
 
-
-/* NEW Download Animation */
-@keyframes download-bounce {
-  0%, 100% {
-    transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-  }
-  50% {
-    transform: translateY(0);
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-  }
+/* Custom GSAP Download Button Styles */
+.gsap-button {
+  --duration: 3000ms;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  
+  /* Black & White Theme */
+  background: #111827; /* gray-900 */
+  color: #f9fafb; /* gray-50 */
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem; /* 8px */
+  border: none;
+  transition: background 0.3s;
 }
 
-.animate-download {
-  animation: download-bounce 1s infinite;
+.dark .gsap-button {
+  background: #f3f4f6; /* gray-100 */
+  color: #111827; /* gray-900 */
 }
 
+.gsap-button:hover {
+  background: #374151; /* gray-700 */
+}
+
+.dark .gsap-button:hover {
+  background: #d1d5db; /* gray-300 */
+}
+
+.gsap-button__text {
+  margin-right: 0.5em;
+  transition: transform 0.4s cubic-bezier(.7, 0, .2, 1);
+}
+
+.gsap-button__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gsap-button__icon svg {
+  width: 1.2em;
+  height: 1.2em;
+  transition: transform 0.3s ease-in-out;
+  fill: currentColor;
+}
+
+/* Loading state for the animation */
+.gsap-button.loading .gsap-button__text {
+  /* Hides the text during animation by moving it up */
+  transform: translateY(-200%);
+}
 
 /* Styling for Prose (Informational Content) */
 .prose-dark {
-    color: #d1d5db; /* gray-300 */
+    color: #d1d5db;
 }
 .prose-dark h1, .prose-dark h2, .prose-dark h3, .prose-dark h4, .prose-dark strong {
-    color: #f9fafb; /* gray-50 */
+    color: #f9fafb;
 }
 .prose-dark a {
-    color: #60a5fa; /* blue-400 */
+    color: #60a5fa;
 }
 .prose-dark a:hover {
-    color: #3b82f6; /* blue-500 */
+    color: #3b82f6;
 }
 .prose-dark blockquote {
-    border-left-color: #4b5563; /* gray-600 */
-    color: #9ca3af; /* gray-400 */
+    border-left-color: #4b5563;
+    color: #9ca3af;
 }
 .prose-dark code {
-    background-color: #374151; /* gray-700 */
-    color: #e5e7eb; /* gray-200 */
+    background-color: #374151;
+    color: #e5e7eb;
     padding: 0.2em 0.4em;
     border-radius: 0.25rem;
 }
 .prose-dark ul > li::before {
-    background-color: #60a5fa; /* blue-400 */
+    background-color: #60a5fa;
 }
