@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlForm = document.getElementById('urlForm');
     const urlInput = document.getElementById('urlInput');
     const fetchButton = document.getElementById('fetchButton');
-    const downloadButton = document.getElementById('downloadButton'); // Get the download button
+    const downloadButton = document.getElementById('downloadButton');
     const resultContainer = document.getElementById('result-container');
     const skeleton = document.getElementById('skeleton');
     const resultDiv = document.getElementById('result');
@@ -11,12 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('errorMessage');
     const darkModeToggle = document.getElementById('darkModeToggle');
     const themeIconLight = document.getElementById('theme-icon-light');
-    const themeIconDark = anvascript
-document.getElementById('theme-icon-dark');
+    const themeIconDark = document.getElementById('theme-icon-dark');
     
     let currentVideoData = null;
 
-    // --- Dark Mode Logic (No changes needed) ---
+    // --- Dark Mode Logic ---
     const applyTheme = (theme) => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -45,13 +44,17 @@ document.getElementById('theme-icon-dark');
     };
     initializeTheme();
 
-    // --- Form Submission Logic (No changes needed) ---
+
+    // --- Form Submission Logic (Fetch Button) ---
     urlForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const url = urlInput.value.trim();
-        if (!url) { showError("Please paste a URL first."); return; }
+        if (!url) {
+            showError("Please paste a URL first.");
+            return;
+        }
 
-        showSkeleton();
+        showSkeleton(); // This function was missing before
         fetchButton.disabled = true;
         fetchButton.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Fetching...</span>`;
 
@@ -69,16 +72,28 @@ document.getElementById('theme-icon-dark');
             currentVideoData = data;
             displayResult(data);
         } catch (error) {
-            showError(error.message);
+            showError(error.message); // This function was also missing
         } finally {
             fetchButton.disabled = false;
             fetchButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><span>Fetch</span>`;
         }
     });
 
-    // --- UI Update Functions (No changes needed) ---
-    const showSkeleton = () => { /* ... */ };
-    const showError = (message) => { /* ... */ };
+    // --- <<< THE MISSING FUNCTIONS ARE NOW HERE >>> ---
+    // --- UI Update Functions ---
+    const showSkeleton = () => {
+        resultDiv.classList.add('hidden');
+        errorDiv.classList.add('hidden');
+        skeleton.classList.remove('hidden');
+    };
+
+    const showError = (message) => {
+        skeleton.classList.add('hidden');
+        resultDiv.classList.add('hidden');
+        errorMessage.textContent = message;
+        errorDiv.classList.remove('hidden');
+    };
+
     const displayResult = (data) => {
         skeleton.classList.add('hidden');
         errorDiv.classList.add('hidden');
@@ -105,7 +120,7 @@ document.getElementById('theme-icon-dark');
         
         if (audioFormats.length > 0) {
             const audioGroup = document.createElement('optgroup');
-            audioGroup.label = 'Audio (MP3)';
+            audioGroup.label = 'Audio';
             audioFormats.forEach((format) => {
                 const option = document.createElement('option');
                 option.value = data.formats.indexOf(format);
@@ -117,7 +132,7 @@ document.getElementById('theme-icon-dark');
         resultDiv.classList.remove('hidden');
     };
 
-    // --- <<< THIS IS THE MODIFIED PART >>> ---
+    // --- Download Logic with Animation ---
     downloadButton.addEventListener('click', () => {
         const selectedIndex = document.getElementById('formatSelector').value;
         if (selectedIndex === null || !currentVideoData) {
@@ -128,7 +143,6 @@ document.getElementById('theme-icon-dark');
         const selectedFormat = currentVideoData.formats[selectedIndex];
         const downloadUrl = `/api/download?url=${encodeURIComponent(currentVideoData.original_url)}&format_id=${encodeURIComponent(selectedFormat.format_id)}&filename=${encodeURIComponent(selectedFormat.filename)}&ext=${encodeURIComponent(selectedFormat.ext)}`;
 
-        // --- ADDED ANIMATION LOGIC ---
         // 1. Disable the button and show a spinner
         downloadButton.disabled = true;
         downloadButton.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Processing...</span>`;
@@ -136,8 +150,7 @@ document.getElementById('theme-icon-dark');
         // 2. Trigger the download
         window.location.href = downloadUrl;
 
-        // 3. Set a timeout to re-enable the button after some time.
-        // This is a failsafe in case the download starts but the user stays on the page.
+        // 3. Set a timeout to re-enable the button
         setTimeout(() => {
             downloadButton.disabled = false;
             downloadButton.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Download Now</span>`;
