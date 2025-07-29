@@ -60,7 +60,7 @@ body {
   padding: 0.75rem 1rem;
   border-radius: 0.5rem; /* 8px */
   border: none;
-  transition: background 0.3s;
+  transition: background 0.3s, color 0.3s;
 }
 
 .dark .gsap-button {
@@ -94,11 +94,23 @@ body {
   fill: currentColor;
 }
 
-/* Loading state for the animation */
+/* Loading state hides the text */
 .gsap-button.loading .gsap-button__text {
-  /* Hides the text during animation by moving it up */
   transform: translateY(-200%);
 }
+
+/* Success state styles */
+.gsap-button.success {
+    background: #10B981; /* green-500 */
+    color: white;
+    cursor: default;
+}
+
+.dark .gsap-button.success {
+    background: #10B981; /* green-500 */
+    color: white;
+}
+
 
 /* Styling for Prose (Informational Content) */
 .prose-dark {
