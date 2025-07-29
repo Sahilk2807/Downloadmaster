@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en"> <!-- Removed hardcoded "dark" class -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,19 +20,18 @@
     <meta property="og:url" content="https://YOUR_DOMAIN.com/"> <!--! IMPORTANT: Change to your actual domain -->
     <meta property="og:title" content="Download Master - Free Video & Audio Downloader">
     <meta property="og:description" content="Download videos and audio from all major platforms in any quality (up to 8K). Fast, free, and no watermarks.">
-    <meta property="og:image" content="{{ url_for('static', filename='assets/og-image.png') }}"> <!--! Create a 1200x630px image and place it in static/assets/ -->
+    <meta property="og:image" content="{{ url_for('static', filename='assets/og-image.png') }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://YOUR_DOMAIN.com/"> <!--! IMPORTANT: Change to your actual domain -->
     <meta property="twitter:title" content="Download Master - Free Video & Audio Downloader">
     <meta property="twitter:description" content="Download videos and audio from all major platforms in any quality (up to 8K). Fast, free, and no watermarks.">
-    <meta property="twitter:image" content="{{ url_for('static', filename='assets/og-image.png') }}"> <!--! Create a 1200x630px image and place it in static/assets/ -->
+    <meta property="twitter:image" content="{{ url_for('static', filename='assets/og-image.png') }}">
 
     <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 
     <!-- Adsterra Social Bar Ads -->
     <script type='text/javascript' src='//grubpaths.com/26/4f/8b/264f8b1cbdb77b89036f264d73644d1c.js'></script>
@@ -58,7 +57,18 @@
             <div class="w-full bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 md:p-8 transform transition-all duration-500" id="main-card">
                 
                 <h2 class="text-xl md:text-2xl font-semibold mb-2">The Ultimate All-in-One Downloader</h2>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">Paste any video link from YouTube, TikTok, Instagram & more.</p>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">Paste any video link from major platforms.</p>
+
+                <!-- NEW: Supported Platforms -->
+                <div class="flex flex-wrap justify-center gap-2 mb-6">
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">YouTube</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">TikTok</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">Instagram</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">Facebook</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">Twitter (X)</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">Vimeo</span>
+                    <span class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold px-2 py-1 rounded-full">SoundCloud</span>
+                </div>
 
                 <!-- URL Input Form -->
                 <form id="urlForm" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
