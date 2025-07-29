@@ -2,27 +2,37 @@ import os
 import json
 import subprocess
 import uuid
-from flask import Flask, request, jsonify, render_template, send_from_directory, after_this_request, url_for
+from flask import Flask, request, jsonify, render_template, send_from_directory, after_this_request
 
-# Initialize Flask App
 app = Flask(__name__)
 
-# Create a temporary directory for downloads
 TMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp')
 if not os.path.exists(TMP_DIR):
     os.makedirs(TMP_DIR)
 
-# --- Helper Functions (No changes from previous version) ---
+# --- Helper Functions ---
+
 def get_sanitized_filename(title):
     sanitized = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
     return sanitized[:100]
 
 def get_video_info(url):
-    command = ['yt-dlp', '--dump-json', '--no-warnings', '--quiet', url]
+    """
+    Uses yt-dlp to extract video information.
+    The -4 flag forces yt-dlp to use IPv4, which can solve connection issues on cloud hosts.
+    """
+    command = [
+        'yt-dlp',
+        '-4',  # <-- THE FIX
+        '--dump-json',
+        '--no-warnings',
+        '--quiet',
+        url
+    ]
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=30)
         return json.loads(result.stdout)
-    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+    except (subprocess.CalledProcessError, json.JSONDecodeError, subprocess.TimeoutExpired) as e:
         print(f"Error fetching video info: {e}")
         return None
 
@@ -31,7 +41,6 @@ def parse_formats(info):
     title = info.get('title', 'video')
     sanitized_title = get_sanitized_filename(title)
     
-    # Audio Only (MP3)
     best_audio = next((f for f in reversed(info.get('formats', [])) if f.get('acodec') != 'none' and f.get('vcodec') == 'none'), None)
     if best_audio:
         filesize = best_audio.get('filesize') or best_audio.get('filesize_approx')
@@ -44,7 +53,6 @@ def parse_formats(info):
             'filesize': filesize_mb,
         })
 
-    # Video Formats (merged)
     video_formats = [f for f in info.get('formats', []) if f.get('vcodec') != 'none']
     processed_resolutions = set()
     for f in reversed(video_formats):
@@ -66,24 +74,20 @@ def parse_formats(info):
         })
     return sorted(formats_list, key=lambda x: (x['type'], -int(x['label'].split('p')[0])) if 'p' in x['label'] else 0)
 
-# --- SEO and Core Routes ---
+
+# --- API & Core Routes ---
 
 @app.route('/')
 def index():
-    """Renders the main page."""
     return render_template('index.html')
 
 @app.route('/robots.txt')
 def robots_txt():
-    """Serves the robots.txt file."""
     return send_from_directory(app.static_folder, 'robots.txt')
 
 @app.route('/sitemap.xml')
 def sitemap_xml():
-    """Serves the sitemap.xml file."""
     return send_from_directory(app.static_folder, 'sitemap.xml')
-
-# --- API Routes (No changes) ---
 
 @app.route('/api/fetch_info', methods=['POST'])
 def fetch_info():
@@ -113,7 +117,12 @@ def download_file():
     if not all([url, format_id, filename, ext]): return "Missing required parameters", 400
 
     temp_filename = f"{uuid.uuid4()}.{ext}"
-    command = ['yt-dlp', '--no-warnings', '-f', format_id]
+    command = [
+        'yt-dlp',
+        '-4', # <-- THE FIX
+        '--no-warnings',
+        '-f', format_id
+    ]
     
     if ext == 'mp3':
         command.extend(['-x', '--audio-format', 'mp3'])
@@ -123,21 +132,18 @@ def download_file():
     command.extend(['-o', os.path.join(TMP_DIR, temp_filename), url])
     
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Download error: {e.stderr}")
-        return f"Error during download process: {e.stderr}", 500
+        subprocess.run(command, check=True, capture_output=True, text=True, timeout=300)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        print(f"Download error: {e}")
+        return f"Error during download process: {e}", 500
 
     @after_this_request
     def cleanup(response):
-        try:
-            os.remove(os.path.join(TMP_DIR, temp_filename))
-        except OSError as e:
-            print(f"Error cleaning up file: {e}")
+        try: os.remove(os.path.join(TMP_DIR, temp_filename))
+        except OSError as e: print(f"Error cleaning up file: {e}")
         return response
 
     return send_from_directory(TMP_DIR, temp_filename, as_attachment=True, download_name=filename)
 
 if __name__ == '__main__':
-    # For production, use a proper WSGI server like Gunicorn or Waitress
-    app.run(host='0.0.0.0', port=5001, debug=False)
+    app.run(host='0.0.0.0', port=10000, debug=False)
