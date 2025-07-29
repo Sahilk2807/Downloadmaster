@@ -34,5 +34,5 @@ USER app
 # Expose the port the app runs on
 EXPOSE $PORT
 
-# Run the app using gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "app:app"]
+# Run the app using gunicorn (This is the corrected line)
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
