@@ -10,16 +10,16 @@ TMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp')
 if not os.path.exists(TMP_DIR):
     os.makedirs(TMP_DIR)
 
-# --- THE ULTIMATE FIX: Create a more robust command ---
+# --- A more refined robust command ---
 def get_yt_dlp_command(url):
     """Builds a robust yt-dlp command with a browser disguise."""
     return [
         'yt-dlp',
         '-4',  # Force IPv4
-        '--no-check-certificate', # Ignore SSL certificate errors
-        # Add a browser-like User-Agent to avoid being blocked
+        '--no-check-certificate',
+        # <<< MODIFICATION 1: REMOVED the broken --cookies-from-browser flag
         '--add-header', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-        '--cookies-from-browser', 'firefox', # Helps with age-restricted or login-required content
+        '--add-header', 'Accept-Language: en-US,en;q=0.5', # Added another common header
         '--no-warnings',
         '--quiet',
         url
@@ -32,18 +32,23 @@ def get_sanitized_filename(title):
 
 def get_video_info(url):
     command = get_yt_dlp_command(url)
-    command.insert(1, '--dump-json') # Add dump-json after the main command
+    command.insert(1, '--dump-json')
     
     try:
-        # Use a longer timeout for fetching info
         result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=60)
         return json.loads(result.stdout)
-    except (subprocess.CalledProcessError, json.JSONDecodeError, subprocess.TimeoutExpired) as e:
-        print(f"Error fetching video info with robust command: {e}")
+    except subprocess.CalledProcessError as e:
+        # <<< MODIFICATION 2: ADDED DETAILED ERROR LOGGING
+        print("!!!!!!!! YT-DLP STDERR (GET_INFO) !!!!!!!!")
+        print(e.stderr)
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        return None
+    except (json.JSONDecodeError, subprocess.TimeoutExpired) as e:
+        print(f"Error (not from yt-dlp): {e}")
         return None
 
 def parse_formats(info):
-    # This function remains the same, no changes needed
+    # This function is correct and does not need changes.
     formats_list = []
     title = info.get('title', 'video')
     sanitized_title = get_sanitized_filename(title)
@@ -52,11 +57,7 @@ def parse_formats(info):
     if best_audio:
         filesize = best_audio.get('filesize') or best_audio.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
-        formats_list.append({
-            'label': f"Audio MP3 ({best_audio.get('abr', 0)}k)",
-            'format_id': best_audio['format_id'],
-            'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb,
-        })
+        formats_list.append({'label': f"Audio MP3 ({best_audio.get('abr', 0)}k)", 'format_id': best_audio['format_id'], 'type': 'audio', 'ext': 'mp3', 'filename': f"{sanitized_title}.mp3", 'filesize': filesize_mb})
 
     video_formats = [f for f in info.get('formats', []) if f.get('vcodec') != 'none']
     processed_resolutions = set()
@@ -68,15 +69,11 @@ def parse_formats(info):
         filesize = f.get('filesize') or f.get('filesize_approx')
         filesize_mb = f"~{filesize / (1024*1024):.2f} MB" if filesize else "N/A"
         label = f"{height}p"
-        formats_list.append({
-            'label': label,
-            'format_id': format_id,
-            'type': 'video', 'ext': 'mp4', 'filename': f"{sanitized_title}_{height}p.mp4", 'filesize': filesize_mb,
-        })
+        formats_list.append({'label': label, 'format_id': format_id, 'type': 'video', 'ext': 'mp4', 'filename': f"{sanitized_title}_{height}p.mp4", 'filesize': filesize_mb})
     return sorted(formats_list, key=lambda x: (x['type'], -int(x['label'].split('p')[0])) if 'p' in x['label'] else 0)
 
 
-# --- API & Core Routes ---
+# --- API & Core Routes (No changes needed here) ---
 @app.route('/')
 def index(): return render_template('index.html')
 
@@ -89,12 +86,7 @@ def fetch_info():
     if not info: return jsonify({'error': 'Could not fetch video information. The URL might be invalid, private, or unsupported.'}), 404
     
     response_data = {
-        'title': info.get('title', 'No Title'),
-        'thumbnail': info.get('thumbnail', ''),
-        'duration': info.get('duration_string', 'N/A'),
-        'uploader': info.get('uploader', 'N/A'),
-        'formats': parse_formats(info),
-        'original_url': url
+        'title': info.get('title', 'No Title'),'thumbnail': info.get('thumbnail', ''),'duration': info.get('duration_string', 'N/A'),'uploader': info.get('uploader', 'N/A'),'formats': parse_formats(info),'original_url': url
     }
     return jsonify(response_data)
 
@@ -120,9 +112,16 @@ def download_file():
     
     try:
         subprocess.run(command, check=True, capture_output=True, text=True, timeout=300)
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        print(f"Download error: {e}")
-        return f"Error during download process: {e}", 500
+    except subprocess.CalledProcessError as e:
+        # Also adding detailed logging here
+        print("!!!!!!!! YT-DLP STDERR (DOWNLOAD) !!!!!!!!")
+        print(e.stderr)
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        return f"Error during download process.", 500
+    except subprocess.TimeoutExpired as e:
+        print(f"Download timed out: {e}")
+        return "Download timed out.", 500
+
 
     @after_this_request
     def cleanup(response):
