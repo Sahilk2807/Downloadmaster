@@ -21,9 +21,13 @@ def get_yt_dlp_command(url):
         '--add-header', 'Accept-Language: en-US,en;q=0.5',
         '--no-warnings', '--quiet'
     ]
+    
+    # <<< THIS IS THE CRITICAL FIX >>>
+    # Always use cookies if the file exists, for ALL platforms.
     cookie_file_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-    if 'facebook.com' in url and os.path.exists(cookie_file_path):
+    if os.path.exists(cookie_file_path):
         base_command.extend(['--cookies', cookie_file_path])
+    
     base_command.append(url)
     return base_command
 
