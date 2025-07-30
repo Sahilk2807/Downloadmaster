@@ -19,15 +19,15 @@ def get_yt_dlp_command(url):
         'yt-dlp', '-4', '--no-check-certificate',
         '--add-header', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
         '--add-header', 'Accept-Language: en-US,en;q=0.5',
-        '--no-warnings', '--quiet'
+        '--no-warnings', '--quiet',
+        '--geo-bypass'  # <<< UPDATED: Added this flag to help with region-locked content
     ]
-    
-    # <<< THIS IS THE CRITICAL FIX >>>
+
     # Always use cookies if the file exists, for ALL platforms.
     cookie_file_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
     if os.path.exists(cookie_file_path):
         base_command.extend(['--cookies', cookie_file_path])
-    
+
     base_command.append(url)
     return base_command
 
@@ -171,7 +171,7 @@ def download():
         command.extend(['-f', 'bestaudio/best', '--extract-audio', '--audio-format', 'mp3'])
     else: # mp4
         command.extend(['-f', format_id, '--merge-output-format', 'mp4'])
-    
+
     try:
         subprocess.run(command, check=True, timeout=600) # 10 minute timeout for download
     except subprocess.CalledProcessError as e:
@@ -182,7 +182,7 @@ def download():
 
     if not os.path.exists(final_filepath):
         return jsonify({'error': 'Downloaded file not found on server.'}), 500
-        
+
     @after_this_request
     def cleanup(response):
         try:
