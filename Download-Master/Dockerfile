@@ -10,7 +10,8 @@ ENV PORT=10000
 WORKDIR /app
 
 # Install system dependencies, including ffmpeg
-RUN apt-get update && apt-get install -y --no-install-recommests -y --no-install-recommends \
+# <<< THIS IS THE CORRECTED LINE >>>
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,7 +20,6 @@ RUN addgroup --system app && adduser --system --group app
 
 # Copy and install Python dependencies, ignoring the root user warning
 COPY requirements.txt .
-# <<< MODIFIED: Added --root-user-action=ignore to suppress the warning >>>
 RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore
 RUN pip install --no-cache-dir -r requirements.txt --root-user-action=ignore
 
