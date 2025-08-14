@@ -22,10 +22,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore
 RUN pip install --no-cache-dir -r requirements.txt --root-user-action=ignore
 
-# <<< THIS IS THE GUARANTEED FIX >>>
-# Force the installation of the requests library, bypassing any requirements.txt issues
-RUN pip install requests==2.31.0 --no-cache-dir --root-user-action=ignore
-
 # Copy the rest of the application files
 COPY . .
 
