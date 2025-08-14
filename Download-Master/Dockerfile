@@ -10,7 +10,6 @@ ENV PORT=10000
 WORKDIR /app
 
 # Install system dependencies, including ffmpeg
-# <<< THIS IS THE CORRECTED LINE >>>
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
@@ -18,10 +17,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create a non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
-# Copy and install Python dependencies, ignoring the root user warning
+# Copy and install Python dependencies from your requirements file
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore
 RUN pip install --no-cache-dir -r requirements.txt --root-user-action=ignore
+
+# <<< THIS IS THE GUARANTEED FIX >>>
+# Force the installation of the requests library, bypassing any requirements.txt issues
+RUN pip install requests==2.31.0 --no-cache-dir --root-user-action=ignore
 
 # Copy the rest of the application files
 COPY . .
