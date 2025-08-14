@@ -37,4 +37,4 @@ document.addEventListener('DOMContentLoaded', () => {
             button.querySelector('.gsap-button__icon').style.display = 'none';
         }, 3000 / 2);
     });
-});
+}); 
