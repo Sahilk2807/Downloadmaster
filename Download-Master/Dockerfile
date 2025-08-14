@@ -17,14 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create a non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
-# Copy and install Python dependencies
+# Copy and install Python dependencies from your requirements file
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- THE ULTIMATE FIX ---
-# Force an upgrade of yt-dlp to the absolute latest version
-RUN python3 -m pip install --no-cache-dir -U yt-dlp
+# --- REMOVED THE FORCED YT-DLP UPGRADE LINE TO RESPECT requirements.txt ---
 
 # Copy the rest of the application files
 COPY . .
