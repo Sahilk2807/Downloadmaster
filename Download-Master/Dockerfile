@@ -10,19 +10,18 @@ ENV PORT=10000
 WORKDIR /app
 
 # Install system dependencies, including ffmpeg
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommests -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
-# Copy and install Python dependencies from your requirements file
+# Copy and install Python dependencies, ignoring the root user warning
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-
-# --- REMOVED THE FORCED YT-DLP UPGRADE LINE TO RESPECT requirements.txt ---
+# <<< MODIFIED: Added --root-user-action=ignore to suppress the warning >>>
+RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore
+RUN pip install --no-cache-dir -r requirements.txt --root-user-action=ignore
 
 # Copy the rest of the application files
 COPY . .
